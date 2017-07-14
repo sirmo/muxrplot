@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """
 Copyright (c) 2017 Muxr, http://www.eevblog.com/forum/profile/?u=105823
 
@@ -31,6 +33,16 @@ import matplotlib.ticker as plticker
 from matplotlib.ticker import FormatStrFormatter
 import argparse
 import sys
+
+# By default, matplotlib will try to plot all of the data points in
+# one pass.  If you are plotting more than a few days worth of data
+# (e.g. ~1 million data points), you'll likely hit this error:
+#
+#   "OverflowError: Allocated too many blocks"
+#
+# To avoid this, we instruct matplotlib to break up the plot into
+# chunks.  Thanks to https://stackoverflow.com/a/23361090
+matplotlib.rcParams['agg.path.chunksize'] = 100000
 
 COLORS = ["#6e3c82", "#3498db", "#95a5a6", "#e74c3c", "#34495e", "#2ecc71"]
 
