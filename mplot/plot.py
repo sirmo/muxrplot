@@ -92,6 +92,15 @@ def plot(options):
         avg_df = avg_df[window_len-1:]
         df = avg_df
 
+    # Apply a rolling average filter if requested via cmdline options.
+    if options.avg_window is not None:
+        window_len = options.avg_window
+        avg_df = df.rolling(window=window_len).mean()
+        # Until the window fills up, the output will be a bunch of NaN values,
+        # which we remove here:
+        avg_df = avg_df[window_len-1:]
+        df = avg_df
+
     plt.locator_params(axis='y', nticks=20)
 
     plot = df.set_index('timestamp').plot(figsize=(21, 9), linewidth=0.3)
