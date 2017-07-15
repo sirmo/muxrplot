@@ -116,8 +116,12 @@ def plot(options):
 
     plot.set_xticklabels(format_time(evened_out_ts), rotation=-15)
 
+    # The below plot accessories are based off of the first (non-timestamp) column of values.
+    values_colkey = df.columns[1]
+
+    # Create Y-axis tick labels.
     ny = len(plot.yaxis.get_ticklabels())
-    plot.set_yticklabels(np.linspace(df.value.min(), df.value.max(), ny))
+    plot.set_yticklabels(np.linspace(df[values_colkey].min(), df[values_colkey].max(), ny))
     plot.yaxis.set_major_formatter(FormatStrFormatter('%.{}f'.format(options.ydigits)))
 
     # TODO add minor ticks
@@ -126,8 +130,9 @@ def plot(options):
     fig = plot.get_figure()
 
     #
-    # plot the trend line
-    z = np.polyfit(df[timestamp_colkey], df.value, 1)
+    # Plot the trend line of the first data column
+    data_colkey = df.columns[1]
+    z = np.polyfit(df[timestamp_colkey], df[data_colkey], 1)
     p = np.poly1d(z)
     plt.plot(df[timestamp_colkey], p(df[timestamp_colkey]), "r--", color=COLORS[0], linewidth=0.8)
 
@@ -140,27 +145,27 @@ def plot(options):
     height = 0.265
     spacing = 0.025
 
-    value_max = 'max: {}'.format(df.value.max())
+    value_max = 'max: {}'.format(df[values_colkey].max())
     fig.text(0.905, height, value_max, fontsize=12, color=COLORS[0])
     height -= spacing
     print value_max
 
-    value_min = 'min: {}'.format(df.value.min())
+    value_min = 'min: {}'.format(df[values_colkey].min())
     fig.text(0.905, height, value_min, fontsize=12, color=COLORS[0])
     height -= spacing
     print value_min
 
-    value_p2p = 'p-p: {:.08f}'.format(float(df.value.max() - df.value.min()))
+    value_p2p = 'p-p: {:.08f}'.format(float(df[values_colkey].max() - df[values_colkey].min()))
     fig.text(0.905, height, value_p2p, fontsize=12, color=COLORS[0])
     height -= spacing
     print value_p2p
 
-    value_std_dev = 'o: {}'.format(round(df.value.std(), 9))
+    value_std_dev = 'o: {}'.format(round(df[values_colkey].std(), 9))
     fig.text(0.905, height, value_std_dev, fontsize=12, color=COLORS[0])
     height -= spacing
     print value_std_dev
 
-    count = 'samples: {}'.format(df.value.count())
+    count = 'samples: {}'.format(df[values_colkey].count())
     fig.text(0.905, height, count, fontsize=12, color=COLORS[0])
     height -= spacing
     print count
@@ -170,7 +175,7 @@ def plot(options):
     height -= spacing
     print value_duration
 
-    mean = 'mean: {}'.format(round(df.value.mean(), 9))
+    mean = 'mean: {}'.format(round(df[values_colkey].mean(), 9))
     fig.text(0.905, height, mean, fontsize=13, fontweight='bold', color=COLORS[0])
     height -= spacing
     print mean
