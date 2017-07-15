@@ -55,9 +55,9 @@ def format_time(ts):
     return res
 
 
-def get_date_range(df):
-    max_time = df.timestamp.max()
-    min_time = df.timestamp.min()
+def get_date_range(df, timestamp_colkey):
+    max_time = df[timestamp_colkey].max()
+    min_time = df[timestamp_colkey].min()
     t_to = std_time.strftime("%d-%b-%Y", std_time.localtime(np.asscalar(np.int32(max_time))))
     t_from = std_time.strftime("%d-%b-%Y", std_time.localtime(np.asscalar(np.int32(min_time))))
     if t_to == t_from:
@@ -65,9 +65,9 @@ def get_date_range(df):
     return "{} - {}".format(t_from, t_to)
 
 
-def time_delta(df):
-    start = df.timestamp.min()
-    stop = df.timestamp.max()
+def time_delta(df, timestamp_colkey):
+    start = df[timestamp_colkey].min()
+    stop = df[timestamp_colkey].max()
     d = divmod(stop-start, 86400)  # days
     h = divmod(d[1], 3600)         # hours
     m = divmod(h[1], 60)           # minutes
@@ -103,22 +103,16 @@ def plot(options):
         avg_df = avg_df[window_len-1:]
         df = avg_df
 
-    # Apply a rolling average filter if requested via cmdline options.
-    if options.avg_window is not None:
-        window_len = options.avg_window
-        avg_df = df.rolling(window=window_len).mean()
-        # Until the window fills up, the output will be a bunch of NaN values,
-        # which we remove here:
-        avg_df = avg_df[window_len-1:]
-        df = avg_df
-
     plt.locator_params(axis='y', nticks=20)
 
-    plot = df.set_index('timestamp').plot(figsize=(21, 9), linewidth=0.3)
+    # Assume the timestamps are in the first column ('colkey' being short for "column key").
+    timestamp_colkey = df.columns[0]
+
+    plot = df.set_index(timestamp_colkey).plot(figsize=(21, 9), linewidth=0.3)
 
     # set labels for X and Y axis
     n = len(plot.xaxis.get_ticklabels())
-    evened_out_ts = np.linspace(df.timestamp.min(), df.timestamp.max(), n)
+    evened_out_ts = np.linspace(df[timestamp_colkey].min(), df[timestamp_colkey].max(), n)
 
     plot.set_xticklabels(format_time(evened_out_ts), rotation=-15)
 
@@ -133,13 +127,13 @@ def plot(options):
 
     #
     # plot the trend line
-    z = np.polyfit(df.timestamp, df.value, 1)
+    z = np.polyfit(df[timestamp_colkey], df.value, 1)
     p = np.poly1d(z)
-    plt.plot(df.timestamp, p(df.timestamp), "r--", color=COLORS[0], linewidth=0.8)
+    plt.plot(df[timestamp_colkey], p(df[timestamp_colkey]), "r--", color=COLORS[0], linewidth=0.8)
 
     #
     # add some captions
-    title = '{} ({})'.format(options.title, get_date_range(df))
+    title = '{} ({})'.format(options.title, get_date_range(df, timestamp_colkey))
     fig.text(0.40, 0.90, title, fontsize=13, fontweight='bold', color=COLORS[0])
     print title
 
@@ -171,7 +165,7 @@ def plot(options):
     height -= spacing
     print count
 
-    value_duration = 'duration: {}'.format(time_delta(df))
+    value_duration = 'duration: {}'.format(time_delta(df, timestamp_colkey))
     fig.text(0.905, height, value_duration, fontsize=12, color=COLORS[0])
     height -= spacing
     print value_duration
