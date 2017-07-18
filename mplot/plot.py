@@ -76,12 +76,23 @@ def time_delta(df):
     return '{:.0f}d {:02.0f}:{:02.0f}.{:02.0f}'.format(d[0], h[0], m[0], int(s))
 
 
+# Auto-detect which delimiter is being used in the csv file.
+def detect_delimiter(options):
+    delims = [';', ',', '|']
+    with open(options.infile, 'r') as f:
+        first_line = f.readline()
+        for delim in delims:
+            if delim in first_line:
+                return delim
+        raise Exception("Could not detect delimiter used in CSV file!")
+
+
 def plot(options):
 
     sns.set(style="darkgrid")
     sns.set_palette(COLORS)
 
-    df = pd.read_csv(options.infile, delimiter=',')
+    df = pd.read_csv(options.infile, delimiter=detect_delimiter(options))
 
     # Apply a rolling average filter if requested via cmdline options.
     if options.avg_window is not None:
